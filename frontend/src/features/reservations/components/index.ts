@@ -4,3 +4,5 @@ export { ReservationDetailsModal } from './ReservationDetailsModal';
 export { EditReservationModal } from './EditReservationModal';
 export type { EditReservationModalProps } from './EditReservationModal';
 export type { ReservationDetailsModalProps } from './ReservationDetailsModal';
+export { RoomConfiguration } from './RoomConfiguration';
+export type { RoomConfigurationProps, Room } from './RoomConfiguration';

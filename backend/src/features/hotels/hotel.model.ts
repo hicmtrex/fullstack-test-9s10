@@ -15,7 +15,7 @@ export const HOTEL_COLUMNS = {
   CITY: 'city',
   ADDRESS: 'address',
   PRICE_PER_NIGHT: 'price_per_night',
+  IMAGE_URL: 'image_url',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at',
 } as const;
-

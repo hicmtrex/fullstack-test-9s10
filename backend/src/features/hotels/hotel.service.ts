@@ -1,5 +1,11 @@
 import { HotelRepository } from './hotel.repository';
-import { Hotel, HotelSearchCriteria, HotelSearchResult, CreateHotelDto, UpdateHotelDto } from './hotel.types';
+import {
+  Hotel,
+  HotelSearchCriteria,
+  HotelSearchResult,
+  CreateHotelDto,
+  UpdateHotelDto,
+} from './hotel.types';
 
 /**
  * Hotel Service
@@ -42,7 +48,7 @@ export class HotelService {
     const numberOfNights = criteria.numberOfNights || 1;
 
     // Calculate total price for each hotel
-    return hotels.map((hotel) => ({
+    return hotels.map(hotel => ({
       ...hotel,
       totalPrice: hotel.price_per_night * numberOfNights,
     }));
@@ -61,6 +67,7 @@ export class HotelService {
       city: hotelData.city,
       address: hotelData.address || null,
       price_per_night: hotelData.price_per_night,
+      image_url: hotelData.image_url ?? null,
     });
   }
 
@@ -83,4 +90,3 @@ export class HotelService {
     return this.repository.delete(id);
   }
 }
-

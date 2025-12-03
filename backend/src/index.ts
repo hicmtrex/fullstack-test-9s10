@@ -9,6 +9,7 @@ import hotelRoutes from './features/hotels/hotel.routes';
 import reservationRoutes from './features/reservations/reservation.routes';
 import factureRoutes from './features/factures/facture.routes';
 import dashboardRoutes from './features/dashboard/dashboard.routes';
+import authRoutes from './features/auth/auth.routes';
 import { errorHandler } from './shared/middleware/errorHandler';
 import morgan from 'morgan';
 const app = express();
@@ -64,6 +65,7 @@ initializeDatabase().catch(error => {
 });
 
 // Register feature routes
+app.use('/api/auth', authRoutes);
 app.use('/api/hotels', hotelRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/factures', factureRoutes);

@@ -40,6 +40,33 @@ interface ApiClientConfig {
 }
 
 /**
+ * In-memory auth token used for Authorization header
+ * This is set by the AuthProvider on login/logout
+ */
+let authToken: string | null = null;
+
+/**
+ * Sets the current auth token to be used for API requests
+ * @param token - JWT access token or null to clear
+ */
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+/**
+ * Returns Authorization header if token is present
+ */
+function getAuthHeaders(): Record<string, string> {
+  if (!authToken) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
+/**
  * Centralized API client
  */
 class ApiClient {
@@ -66,10 +93,16 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const errorMessage =
-        typeof data === 'object' && data !== null && 'error' in data
-          ? String((data as { error: string }).error)
-          : `Request failed with status ${response.status}`;
+      let errorMessage = `Request failed with status ${response.status}`;
+
+      if (typeof data === 'object' && data !== null) {
+        const payload = data as { message?: string; error?: string };
+        if (payload.message) {
+          errorMessage = String(payload.message);
+        } else if (payload.error) {
+          errorMessage = String(payload.error);
+        }
+      }
 
       throw new ApiClientError(response.status, errorMessage, data);
     }
@@ -91,6 +124,7 @@ class ApiClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
           ...options?.headers,
         },
       });
@@ -124,6 +158,7 @@ class ApiClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
           ...options?.headers,
         },
         body: data ? JSON.stringify(data) : undefined,
@@ -158,6 +193,7 @@ class ApiClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
           ...options?.headers,
         },
         body: data ? JSON.stringify(data) : undefined,
@@ -192,6 +228,7 @@ class ApiClient {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
           ...options?.headers,
         },
       });

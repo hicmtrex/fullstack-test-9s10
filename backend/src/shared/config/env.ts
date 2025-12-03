@@ -14,6 +14,10 @@ export const env = {
   DB_PASSWORD: process.env.DB_PASSWORD || '',
   DB_NAME: process.env.DB_NAME || 'travel_agency',
   DB_PORT: parseInt(process.env.DB_PORT || '3306', 10),
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-me',
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-me',
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 } as const;
 
 /**
@@ -21,7 +25,7 @@ export const env = {
  */
 export function validateEnv(): void {
   const required = ['DB_HOST', 'DB_USER', 'DB_NAME'];
-  const missing = required.filter((key) => !process.env[key]);
+  const missing = required.filter(key => !process.env[key]);
 
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
@@ -30,4 +34,3 @@ export function validateEnv(): void {
 
 // Validate on import
 validateEnv();
-

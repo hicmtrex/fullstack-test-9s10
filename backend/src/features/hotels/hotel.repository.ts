@@ -89,8 +89,8 @@ export class HotelRepository {
   async create(hotelData: Omit<Hotel, 'id' | 'created_at' | 'updated_at'>): Promise<Hotel> {
     const query = `
       INSERT INTO ${HOTEL_TABLE_NAME} 
-      (${HOTEL_COLUMNS.NAME}, ${HOTEL_COLUMNS.COUNTRY}, ${HOTEL_COLUMNS.CITY}, ${HOTEL_COLUMNS.ADDRESS}, ${HOTEL_COLUMNS.PRICE_PER_NIGHT})
-      VALUES (?, ?, ?, ?, ?)
+      (${HOTEL_COLUMNS.NAME}, ${HOTEL_COLUMNS.COUNTRY}, ${HOTEL_COLUMNS.CITY}, ${HOTEL_COLUMNS.ADDRESS}, ${HOTEL_COLUMNS.PRICE_PER_NIGHT}, ${HOTEL_COLUMNS.IMAGE_URL})
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     const params = [
       hotelData.name,
@@ -98,15 +98,16 @@ export class HotelRepository {
       hotelData.city,
       hotelData.address || null,
       hotelData.price_per_night,
+      hotelData.image_url || null,
     ];
 
     const [result] = await this.pool.query<mysql.ResultSetHeader>(query, params);
     const createdHotel = await this.findById(result.insertId);
-    
+
     if (!createdHotel) {
       throw new Error('Failed to retrieve created hotel');
     }
-    
+
     return createdHotel;
   }
 
@@ -143,6 +144,10 @@ export class HotelRepository {
       fields.push(`${HOTEL_COLUMNS.PRICE_PER_NIGHT} = ?`);
       params.push(hotelData.price_per_night);
     }
+    if (hotelData.image_url !== undefined) {
+      fields.push(`${HOTEL_COLUMNS.IMAGE_URL} = ?`);
+      params.push(hotelData.image_url);
+    }
 
     if (fields.length === 0) {
       return this.findById(id);
@@ -166,4 +171,3 @@ export class HotelRepository {
     return result.affectedRows > 0;
   }
 }
-

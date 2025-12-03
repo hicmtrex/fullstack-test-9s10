@@ -12,6 +12,7 @@ export interface Hotel {
   city: string;
   address: string | null;
   price_per_night: number;
+  image_url: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -44,6 +45,7 @@ export interface CreateHotelDto {
   city: string;
   address?: string;
   price_per_night: number;
+  image_url?: string;
 }
 
 /**
@@ -55,5 +57,5 @@ export interface UpdateHotelDto {
   city?: string;
   address?: string;
   price_per_night?: number;
+  image_url?: string;
 }
-
