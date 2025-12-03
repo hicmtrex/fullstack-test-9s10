@@ -2,8 +2,63 @@ import React from 'react';
 import { Search, Calendar } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
+import { Select } from '@/shared/components/Select';
 import { RoomConfiguration, type Room } from '@/features/reservations/components/RoomConfiguration';
 import { getTodayDate } from '@/shared/utils/dateUtils';
+
+/**
+ * List of available countries (extracted from hotel data)
+ */
+const COUNTRIES = [
+  { value: '', label: 'All Countries' },
+  { value: 'Austria', label: 'Austria' },
+  { value: 'Belgium', label: 'Belgium' },
+  { value: 'Croatia', label: 'Croatia' },
+  { value: 'Czech Republic', label: 'Czech Republic' },
+  { value: 'Denmark', label: 'Denmark' },
+  { value: 'France', label: 'France' },
+  { value: 'Germany', label: 'Germany' },
+  { value: 'Greece', label: 'Greece' },
+  { value: 'Hungary', label: 'Hungary' },
+  { value: 'Ireland', label: 'Ireland' },
+  { value: 'Italy', label: 'Italy' },
+  { value: 'Malta', label: 'Malta' },
+  { value: 'Netherlands', label: 'Netherlands' },
+  { value: 'Norway', label: 'Norway' },
+  { value: 'Poland', label: 'Poland' },
+  { value: 'Portugal', label: 'Portugal' },
+  { value: 'Scotland', label: 'Scotland' },
+  { value: 'Spain', label: 'Spain' },
+  { value: 'Sweden', label: 'Sweden' },
+  { value: 'Switzerland', label: 'Switzerland' },
+  { value: 'Turkey', label: 'Turkey' },
+  { value: 'United Arab Emirates', label: 'United Arab Emirates' },
+  { value: 'United Kingdom', label: 'United Kingdom' },
+  { value: 'United States', label: 'United States' },
+  { value: 'Canada', label: 'Canada' },
+  { value: 'Mexico', label: 'Mexico' },
+  { value: 'Brazil', label: 'Brazil' },
+  { value: 'Argentina', label: 'Argentina' },
+  { value: 'Chile', label: 'Chile' },
+  { value: 'Peru', label: 'Peru' },
+  { value: 'Colombia', label: 'Colombia' },
+  { value: 'Venezuela', label: 'Venezuela' },
+  { value: 'Tunisia', label: 'Tunisia' },
+  { value: 'Morocco', label: 'Morocco' },
+  { value: 'Algeria', label: 'Algeria' },
+  { value: 'Egypt', label: 'Egypt' },
+  { value: 'Nigeria', label: 'Nigeria' },
+  { value: 'Kenya', label: 'Kenya' },
+  { value: 'South Africa', label: 'South Africa' },
+  { value: 'Nigeria', label: 'Nigeria' },
+  { value: 'Kenya', label: 'Kenya' },
+  { value: 'South Africa', label: 'South Africa' },
+].sort((a, b) => {
+  // Sort alphabetically, but keep "All Countries" first
+  if (a.value === '') return -1;
+  if (b.value === '') return 1;
+  return a.label.localeCompare(b.label);
+});
 
 /**
  * HotelSearchForm component props
@@ -58,12 +113,11 @@ export const HotelSearchForm: React.FC<HotelSearchFormProps> = ({
       <form onSubmit={onSearch} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Country */}
-          <Input
+          <Select
             label="Country"
-            type="text"
             value={country}
             onChange={e => onCountryChange(e.target.value)}
-            placeholder="e.g., France"
+            options={COUNTRIES}
           />
 
           {/* City */}
@@ -146,4 +200,3 @@ export const HotelSearchForm: React.FC<HotelSearchFormProps> = ({
     </div>
   );
 };
-
