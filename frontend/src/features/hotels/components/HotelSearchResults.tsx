@@ -1,6 +1,7 @@
 import React from 'react';
-import { HotelCard, HotelCardSkeleton } from './HotelCard';
+import { HotelCard } from './HotelCard';
 import type { HotelSearchResult } from '../types/hotel.types';
+import { HotelCardSkeleton } from './HotelCardSkeleton';
 
 /**
  * HotelSearchResults component props
@@ -72,4 +73,3 @@ export const HotelSearchResults: React.FC<HotelSearchResultsProps> = ({
     </div>
   );
 };
-

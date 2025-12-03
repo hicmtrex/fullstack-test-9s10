@@ -3,6 +3,17 @@
 Full‑stack hotel reservation system (React + Node/Express + MySQL) implementing all requirements from `TASK_DESCRIPTION.md`:
 hotel search, reservation management, automatic and manual bill generation, dashboards, and a Tailwind CSS UI.
 
+### 🚀 Quick Start for Testers
+
+**New to this project?** See **[TESTER_GUIDE.md](./TESTER_GUIDE.md)** for a simple step-by-step setup guide.
+
+**Quick login credentials:**
+
+- Email: `admin@agency.com`
+- Password: `admin123`
+
+---
+
 ### Project Structure
 
 - `frontend/` – React, TypeScript, Vite, React Query, Tailwind CSS
@@ -42,12 +53,13 @@ Set at least:
 - `DB_NAME=travel_agency`
 - `PORT=3001`
 
-4. Run migrations and seed data (hotels):
+4. Start the backend (migrations and seeds run automatically):
 
 ```bash
-npm run migrate
-npm run seed
+npm run dev
 ```
+
+**Note:** Migrations and seeds run automatically when the backend starts. You don't need to run them manually unless you're troubleshooting.
 
 5. Start the backend:
 
@@ -56,6 +68,14 @@ npm run dev
 ```
 
 API base URL (from the frontend): `http://localhost:3000/api` (proxied by Vite to `http://localhost:3001`).
+
+### Test Credentials
+
+After seeding, you can log in with:
+
+- **Email:** `admin@agency.com`
+- **Password:** `admin123`
+- **Role:** `admin`
 
 ### 2. Frontend (Web App)
 

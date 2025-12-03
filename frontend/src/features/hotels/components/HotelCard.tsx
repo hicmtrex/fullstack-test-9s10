@@ -20,7 +20,6 @@ export interface HotelCardProps {
  */
 export const HotelCard: React.FC<HotelCardProps> = React.memo(
   ({ hotel, numberOfNights, onReserve, isLoading = false }) => {
-    console.log(hotel);
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         {/* Hotel Image */}
