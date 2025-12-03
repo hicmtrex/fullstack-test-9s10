@@ -1,6 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { hotelApi } from '../services/hotelApi';
-import type { CreateHotelDto, UpdateHotelDto } from '../types/hotel.types';
+import type {
+  CreateHotelDto,
+  UpdateHotelDto,
+  PaginatedResponse,
+  Hotel,
+} from '../types/hotel.types';
 
 /**
  * Query keys for hotel queries
@@ -9,21 +14,75 @@ export const hotelKeys = {
   all: ['hotels'] as const,
   lists: () => [...hotelKeys.all, 'list'] as const,
   list: (filters: Record<string, unknown>) => [...hotelKeys.lists(), filters] as const,
+  searches: () => [...hotelKeys.all, 'search'] as const,
+  search: (criteria: Record<string, unknown>) => [...hotelKeys.searches(), criteria] as const,
   details: () => [...hotelKeys.all, 'detail'] as const,
   detail: (id: number) => [...hotelKeys.details(), id] as const,
 };
 
 /**
- * Custom hook to fetch all hotels
- * @param limit - Optional limit for pagination
- * @param offset - Optional offset for pagination
+ * Custom hook to fetch all hotels with pagination
+ * @param limit - Limit for pagination (default: 12)
+ * @param offset - Offset for pagination (default: 0)
  * @returns React Query hook result
  */
-export const useHotels = (limit?: number, offset?: number) => {
+export const useHotels = (limit = 12, offset = 0) => {
   return useQuery({
     queryKey: hotelKeys.list({ limit, offset }),
     queryFn: () => hotelApi.getAll(limit, offset),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - hotels don't change often
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+  });
+};
+
+/**
+ * Custom hook for infinite scroll/pagination of hotels
+ * @param limit - Items per page (default: 12)
+ * @returns Infinite query hook result
+ */
+export const useHotelsInfinite = (limit = 12) => {
+  return useInfiniteQuery({
+    queryKey: hotelKeys.lists(),
+    queryFn: async ({ pageParam = 0 }): Promise<PaginatedResponse<Hotel>> => {
+      try {
+        const response = await hotelApi.getAll(limit, pageParam);
+        // Backend should return PaginatedResponse, but add safety checks
+        if (response && typeof response === 'object' && 'data' in response) {
+          const paginated = response as PaginatedResponse<Hotel>;
+          // Ensure data is always an array
+          return {
+            ...paginated,
+            data: Array.isArray(paginated.data) ? paginated.data : [],
+          };
+        }
+        // Fallback: empty paginated response
+        return {
+          data: [],
+          total: 0,
+          limit,
+          offset: pageParam,
+          hasMore: false,
+        };
+      } catch (error) {
+        console.error('Error fetching hotels:', error);
+        return {
+          data: [],
+          total: 0,
+          limit,
+          offset: pageParam,
+          hasMore: false,
+        };
+      }
+    },
+    getNextPageParam: (lastPage: PaginatedResponse<Hotel>) => {
+      if (!lastPage || typeof lastPage !== 'object' || !('hasMore' in lastPage)) {
+        return undefined;
+      }
+      return lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined;
+    },
+    initialPageParam: 0,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 };
 

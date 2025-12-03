@@ -33,7 +33,7 @@ export const logger = {
    * Log info message
    */
   info: (message: string, data?: unknown): void => {
-    console.log(formatLog('info', message, data));
+    console.warn(formatLog('info', message, data));
   },
 
   /**
@@ -59,4 +59,3 @@ export const logger = {
     }
   },
 };
-

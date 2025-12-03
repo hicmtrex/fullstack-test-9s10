@@ -7,7 +7,7 @@ import { HotelCardSkeleton } from './HotelCardSkeleton';
  * HotelSearchResults component props
  */
 export interface HotelSearchResultsProps {
-  hotels: HotelSearchResult[] | undefined;
+  hotels: HotelSearchResult[];
   numberOfNights: number;
   reservingHotelId: number | null;
   isLoading: boolean;
@@ -29,6 +29,9 @@ export const HotelSearchResults: React.FC<HotelSearchResultsProps> = ({
   error,
   onReserve,
 }) => {
+  // Ensure hotels is always an array
+  const safeHotels = Array.isArray(hotels) ? hotels : [];
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -50,7 +53,7 @@ export const HotelSearchResults: React.FC<HotelSearchResultsProps> = ({
     );
   }
 
-  if (!hotels || hotels.length === 0) {
+  if (safeHotels.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
         <p className="text-gray-500 text-lg">No hotels found</p>
@@ -61,7 +64,7 @@ export const HotelSearchResults: React.FC<HotelSearchResultsProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {hotels.map(hotel => (
+      {safeHotels.map(hotel => (
         <HotelCard
           key={hotel.id}
           hotel={hotel}

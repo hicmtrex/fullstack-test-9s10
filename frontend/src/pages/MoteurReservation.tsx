@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useHotels } from '@/features/hotels/hooks/useHotels';
-import { useHotelSearch as useHotelSearchMutation } from '@/features/hotels/hooks/useHotelSearch';
+import { useHotelsInfinite } from '@/features/hotels/hooks/useHotels';
+import { useHotelSearch } from '@/features/hotels/hooks/useHotelSearch';
 import {
   HotelCard,
   HotelCardSkeleton,
@@ -10,12 +10,13 @@ import {
 import { useReservationHandler } from '@/features/reservations/hooks/useReservationHandler';
 import { useNotification } from '@/shared/providers/NotificationProvider';
 import { calculateNights, getTodayDate, validateDateRange } from '@/shared/utils/dateUtils';
+import { Button } from '@/shared/components/Button';
 import type { Room } from '@/features/reservations/components/RoomConfiguration';
 
 /**
  * MoteurReservation page component
  * Hotel search and reservation booking engine
- * Clean architecture: Uses extracted components and hooks
+ * Optimized with pagination and React Query caching
  */
 function MoteurReservation(): JSX.Element {
   const { showError } = useNotification();
@@ -30,17 +31,77 @@ function MoteurReservation(): JSX.Element {
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [reservingHotelId, setReservingHotelId] = useState<number | null>(null);
 
-  // Fetch all hotels for initial display
-  const { data: hotelsData, isLoading: hotelsLoading } = useHotels();
-
   // Calculate number of nights (memoized to prevent unnecessary recalculations)
   const numberOfNights = useMemo(() => {
     if (!checkIn || !checkOut) return 1;
     return calculateNights(checkIn, checkOut);
   }, [checkIn, checkOut]);
 
-  // Hotel search mutation
-  const searchMutation = useHotelSearchMutation();
+  // Fetch hotels with infinite scroll (paginated, 12 per page)
+  const {
+    data: hotelsInfiniteData,
+    isLoading: hotelsLoading,
+    fetchNextPage: fetchNextHotels,
+    hasNextPage: hasMoreHotels,
+    isFetchingNextPage: isLoadingMoreHotels,
+  } = useHotelsInfinite(12);
+
+  // Flatten paginated hotels data
+  const hotelsData = useMemo(() => {
+    try {
+      if (!hotelsInfiniteData?.pages || !Array.isArray(hotelsInfiniteData.pages)) return [];
+      const flattened = hotelsInfiniteData.pages.flatMap(page => {
+        if (!page || typeof page !== 'object') return [];
+        // Handle both paginated response and direct array
+        if ('data' in page && Array.isArray(page.data)) {
+          return page.data;
+        }
+        // If page itself is an array, return it
+        if (Array.isArray(page)) {
+          return page;
+        }
+        return [];
+      });
+      return Array.isArray(flattened) ? flattened : [];
+    } catch (error) {
+      console.error('Error flattening hotels data:', error);
+      return [];
+    }
+  }, [hotelsInfiniteData]);
+
+  // Hotel search with infinite scroll (only enabled when search is triggered)
+  const searchCriteria = useMemo(
+    () => ({
+      country: country || undefined,
+      city: city || undefined,
+      checkIn: checkIn || undefined,
+      checkOut: checkOut || undefined,
+      numberOfNights: numberOfNights > 0 ? numberOfNights : undefined,
+    }),
+    [country, city, checkIn, checkOut, numberOfNights]
+  );
+
+  // Simple search query - just fetch and use data
+  const {
+    data: searchData,
+    isLoading: isSearching,
+    isError: isSearchError,
+    error: searchError,
+  } = useHotelSearch(searchCriteria, searchTriggered);
+
+  // Simple extraction - just get the data array from paginated response
+  const searchResults = useMemo(() => {
+    if (!searchData) return [];
+    // Handle paginated response: { data: [...], total, limit, offset, hasMore }
+    if (searchData.data && Array.isArray(searchData.data)) {
+      return searchData.data;
+    }
+    // Fallback: if response is directly an array (shouldn't happen but handle it)
+    if (Array.isArray(searchData)) {
+      return searchData;
+    }
+    return [];
+  }, [searchData]);
 
   /**
    * Handle search form submission
@@ -61,20 +122,8 @@ function MoteurReservation(): JSX.Element {
       }
 
       setSearchTriggered(true);
-
-      try {
-        await searchMutation.mutateAsync({
-          country: country || undefined,
-          city: city || undefined,
-          checkIn: checkIn || undefined,
-          checkOut: checkOut || undefined,
-          numberOfNights: numberOfNights > 0 ? numberOfNights : undefined,
-        });
-      } catch (error) {
-        showError('Failed to search hotels');
-      }
     },
-    [checkIn, checkOut, country, city, numberOfNights, searchMutation, showError]
+    [checkIn, checkOut, showError]
   );
 
   /**
@@ -151,7 +200,7 @@ function MoteurReservation(): JSX.Element {
           checkOut={checkOut}
           rooms={rooms}
           numberOfNights={numberOfNights}
-          isSearching={searchMutation.isPending}
+          isSearching={isSearching}
           onCountryChange={setCountry}
           onCityChange={setCity}
           onCheckInChange={setCheckIn}
@@ -170,43 +219,68 @@ function MoteurReservation(): JSX.Element {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Search Results</h2>
             <HotelSearchResults
-              hotels={searchMutation.data}
+              hotels={searchResults}
               numberOfNights={numberOfNights}
               reservingHotelId={reservingHotelId}
-              isLoading={searchMutation.isPending}
-              isError={searchMutation.isError}
-              error={searchMutation.error as Error | null}
+              isLoading={isSearching}
+              isError={isSearchError}
+              error={searchError as Error | null}
               onReserve={onReserve}
             />
           </div>
         )}
 
-        {/* Initial State - Show all hotels */}
-        {!searchTriggered && hotelsData && hotelsData.length > 0 && (
+        {/* Initial State - Show paginated hotels */}
+        {!searchTriggered && (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Hotels</h2>
-            {hotelsLoading ? (
+            {hotelsLoading && hotelsData.length === 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map(i => (
+                {[1, 2, 3, 4, 5, 6].map(i => (
                   <HotelCardSkeleton key={i} />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {hotelsData.map(hotel => (
-                  <HotelCard
-                    key={hotel.id}
-                    hotel={{
-                      ...hotel,
-                      // Calculate total price for the default list using current dates
-                      totalPrice: hotel.price_per_night * (numberOfNights > 0 ? numberOfNights : 1),
-                    }}
-                    numberOfNights={numberOfNights > 0 ? numberOfNights : 1}
-                    onReserve={onReserve}
-                    isLoading={reservingHotelId === hotel.id}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.isArray(hotelsData) && hotelsData.length > 0 ? (
+                    hotelsData.map(hotel => (
+                      <HotelCard
+                        key={hotel.id}
+                        hotel={{
+                          ...hotel,
+                          // Calculate total price for the default list using current dates
+                          totalPrice:
+                            hotel.price_per_night * (numberOfNights > 0 ? numberOfNights : 1),
+                        }}
+                        numberOfNights={numberOfNights > 0 ? numberOfNights : 1}
+                        onReserve={onReserve}
+                        isLoading={reservingHotelId === hotel.id}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                      No hotels available
+                    </div>
+                  )}
+                </div>
+
+                {/* Load More Button */}
+                {hasMoreHotels && (
+                  <div className="mt-6 text-center">
+                    <Button
+                      onClick={() => fetchNextHotels()}
+                      isLoading={isLoadingMoreHotels}
+                      variant="outline"
+                      className="min-w-[200px]"
+                    >
+                      {isLoadingMoreHotels
+                        ? 'Loading...'
+                        : `Load More (${hotelsData.length} shown)`}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

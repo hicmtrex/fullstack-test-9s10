@@ -18,6 +18,17 @@ export interface Hotel {
 }
 
 /**
+ * Paginated response interface
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
+/**
  * Hotel search criteria
  */
 export interface HotelSearchCriteria {
@@ -27,6 +38,8 @@ export interface HotelSearchCriteria {
   checkIn?: string;
   checkOut?: string;
   numberOfNights?: number;
+  limit?: number;
+  offset?: number;
 }
 
 /**

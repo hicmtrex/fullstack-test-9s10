@@ -15,15 +15,15 @@ export class HotelController {
   }
 
   /**
-   * Get all hotels
-   * GET /api/hotels
+   * Get all hotels with pagination
+   * GET /api/hotels?limit=12&offset=0
    */
   getAll = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 12;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
 
-    const hotels = await this.service.getAllHotels(limit, offset);
-    res.json(hotels);
+    const result = await this.service.getAllHotels(limit, offset);
+    res.json(result);
   });
 
   /**
@@ -49,11 +49,27 @@ export class HotelController {
   });
 
   /**
-   * Search hotels
+   * Search hotels with pagination
    * POST /api/hotels/search
+   * GET /api/hotels/search?country=France&city=Paris&limit=12&offset=0
    */
   search = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const searchCriteria = req.body;
+    // Support both POST (body) and GET (query params) for better caching
+    const searchCriteria =
+      req.method === 'POST'
+        ? req.body
+        : {
+            country: req.query.country as string | undefined,
+            city: req.query.city as string | undefined,
+            checkIn: req.query.checkIn as string | undefined,
+            checkOut: req.query.checkOut as string | undefined,
+            numberOfNights: req.query.numberOfNights
+              ? parseInt(req.query.numberOfNights as string, 10)
+              : undefined,
+            limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
+            offset: req.query.offset ? parseInt(req.query.offset as string, 10) : undefined,
+          };
+
     const results = await this.service.searchHotels(searchCriteria);
     res.json(results);
   });
@@ -113,4 +129,3 @@ export class HotelController {
     res.status(204).send();
   });
 }
-

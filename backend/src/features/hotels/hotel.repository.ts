@@ -16,7 +16,7 @@ export class HotelRepository {
   }
 
   /**
-   * Find all hotels
+   * Find all hotels with pagination
    * @param limit - Optional limit for pagination
    * @param offset - Optional offset for pagination
    * @returns Promise<Hotel[]> - Array of hotels
@@ -36,6 +36,16 @@ export class HotelRepository {
 
     const [rows] = await this.pool.query<mysql.RowDataPacket[]>(query, params);
     return rows as Hotel[];
+  }
+
+  /**
+   * Count total number of hotels
+   * @returns Promise<number> - Total count of hotels
+   */
+  async countAll(): Promise<number> {
+    const query = `SELECT COUNT(*) as total FROM ${HOTEL_TABLE_NAME}`;
+    const [rows] = await this.pool.query<mysql.RowDataPacket[]>(query);
+    return (rows[0] as { total: number }).total;
   }
 
   /**

@@ -6,6 +6,7 @@ import type {
   HotelSearchResult,
   CreateHotelDto,
   UpdateHotelDto,
+  PaginatedResponse,
 } from '../types/hotel.types';
 
 /**
@@ -14,19 +15,18 @@ import type {
  */
 export const hotelApi = {
   /**
-   * Get all hotels
-   * @param limit - Optional limit for pagination
-   * @param offset - Optional offset for pagination
-   * @returns Promise<Hotel[]>
+   * Get all hotels with pagination
+   * @param limit - Limit for pagination (default: 12)
+   * @param offset - Offset for pagination (default: 0)
+   * @returns Promise<PaginatedResponse<Hotel>>
    */
-  getAll: async (limit?: number, offset?: number): Promise<Hotel[]> => {
+  getAll: async (limit = 12, offset = 0): Promise<PaginatedResponse<Hotel>> => {
     const params = new URLSearchParams();
-    if (limit !== undefined) params.append('limit', limit.toString());
-    if (offset !== undefined) params.append('offset', offset.toString());
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
 
-    const queryString = params.toString();
-    const url = queryString ? `${API_ENDPOINTS.HOTELS}?${queryString}` : API_ENDPOINTS.HOTELS;
-    return apiClient.get<Hotel[]>(url);
+    const url = `${API_ENDPOINTS.HOTELS}?${params.toString()}`;
+    return apiClient.get<PaginatedResponse<Hotel>>(url);
   },
 
   /**
@@ -39,12 +39,26 @@ export const hotelApi = {
   },
 
   /**
-   * Search hotels
+   * Search hotels with pagination (using GET for better caching)
    * @param criteria - Search criteria
-   * @returns Promise<HotelSearchResult[]>
+   * @returns Promise<PaginatedResponse<HotelSearchResult>>
    */
-  search: async (criteria: HotelSearchCriteria): Promise<HotelSearchResult[]> => {
-    return apiClient.post<HotelSearchResult[]>(API_ENDPOINTS.HOTELS_SEARCH, criteria);
+  search: async (criteria: HotelSearchCriteria): Promise<PaginatedResponse<HotelSearchResult>> => {
+    const params = new URLSearchParams();
+    if (criteria.country) params.append('country', criteria.country);
+    if (criteria.city) params.append('city', criteria.city);
+    if (criteria.checkIn) params.append('checkIn', criteria.checkIn);
+    if (criteria.checkOut) params.append('checkOut', criteria.checkOut);
+    if (criteria.numberOfNights)
+      params.append('numberOfNights', criteria.numberOfNights.toString());
+    if (criteria.limit) params.append('limit', criteria.limit.toString());
+    if (criteria.offset) params.append('offset', criteria.offset.toString());
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${API_ENDPOINTS.HOTELS_SEARCH}?${queryString}`
+      : API_ENDPOINTS.HOTELS_SEARCH;
+    return apiClient.get<PaginatedResponse<HotelSearchResult>>(url);
   },
 
   /**
@@ -75,4 +89,3 @@ export const hotelApi = {
     return apiClient.delete<void>(`${API_ENDPOINTS.HOTELS}/${id}`);
   },
 };
-

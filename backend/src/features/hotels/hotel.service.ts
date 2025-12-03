@@ -5,6 +5,7 @@ import {
   HotelSearchResult,
   CreateHotelDto,
   UpdateHotelDto,
+  PaginatedResponse,
 } from './hotel.types';
 
 /**
@@ -20,13 +21,24 @@ export class HotelService {
   }
 
   /**
-   * Get all hotels
-   * @param limit - Optional limit for pagination
+   * Get all hotels with pagination
+   * @param limit - Optional limit for pagination (default: 12)
    * @param offset - Optional offset for pagination
-   * @returns Promise<Hotel[]> - Array of hotels
+   * @returns Promise<PaginatedResponse<Hotel>> - Paginated hotels response
    */
-  async getAllHotels(limit?: number, offset?: number): Promise<Hotel[]> {
-    return this.repository.findAll(limit, offset);
+  async getAllHotels(limit = 12, offset = 0): Promise<PaginatedResponse<Hotel>> {
+    const [hotels, total] = await Promise.all([
+      this.repository.findAll(limit, offset),
+      this.repository.countAll(),
+    ]);
+
+    return {
+      data: hotels,
+      total,
+      limit,
+      offset,
+      hasMore: offset + hotels.length < total,
+    };
   }
 
   /**
@@ -39,19 +51,34 @@ export class HotelService {
   }
 
   /**
-   * Search hotels with calculated total prices
+   * Search hotels with calculated total prices and pagination
    * @param criteria - Search criteria
-   * @returns Promise<HotelSearchResult[]> - Array of hotels with total prices
+   * @returns Promise<PaginatedResponse<HotelSearchResult>> - Paginated search results
    */
-  async searchHotels(criteria: HotelSearchCriteria): Promise<HotelSearchResult[]> {
-    const hotels = await this.repository.search(criteria);
+  async searchHotels(criteria: HotelSearchCriteria): Promise<PaginatedResponse<HotelSearchResult>> {
+    const limit = criteria.limit || 12;
+    const offset = criteria.offset || 0;
     const numberOfNights = criteria.numberOfNights || 1;
 
+    // Get hotels matching search criteria
+    const hotels = await this.repository.search(criteria);
+
+    // Apply pagination
+    const paginatedHotels = hotels.slice(offset, offset + limit);
+
     // Calculate total price for each hotel
-    return hotels.map(hotel => ({
+    const results: HotelSearchResult[] = paginatedHotels.map(hotel => ({
       ...hotel,
       totalPrice: hotel.price_per_night * numberOfNights,
     }));
+
+    return {
+      data: results,
+      total: hotels.length,
+      limit,
+      offset,
+      hasMore: offset + results.length < hotels.length,
+    };
   }
 
   /**

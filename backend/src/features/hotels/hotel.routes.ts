@@ -3,11 +3,7 @@ import { HotelRepository } from './hotel.repository';
 import { HotelService } from './hotel.service';
 import { HotelController } from './hotel.controller';
 import { validate } from '../../shared/middleware/validator';
-import {
-  createHotelSchema,
-  updateHotelSchema,
-  hotelSearchSchema,
-} from './hotel.validators';
+import { createHotelSchema, updateHotelSchema, hotelSearchSchema } from './hotel.validators';
 
 /**
  * Hotel routes
@@ -29,6 +25,14 @@ const controller = new HotelController(service);
 router.get('/', controller.getAll);
 
 /**
+ * @route   GET /api/hotels/search
+ * @desc    Search hotels (GET for better caching)
+ * @access  Public
+ * NOTE: Must come before /:id route to avoid "search" being treated as an ID
+ */
+router.get('/search', controller.search);
+
+/**
  * @route   GET /api/hotels/:id
  * @desc    Get hotel by ID
  * @access  Public
@@ -37,7 +41,7 @@ router.get('/:id', controller.getById);
 
 /**
  * @route   POST /api/hotels/search
- * @desc    Search hotels
+ * @desc    Search hotels (POST for complex queries)
  * @access  Public
  */
 router.post('/search', validate(hotelSearchSchema, 'body'), controller.search);
@@ -64,4 +68,3 @@ router.put('/:id', validate(updateHotelSchema, 'body'), controller.update);
 router.delete('/:id', controller.delete);
 
 export default router;
-
