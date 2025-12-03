@@ -50,9 +50,6 @@ const COUNTRIES = [
   { value: 'Nigeria', label: 'Nigeria' },
   { value: 'Kenya', label: 'Kenya' },
   { value: 'South Africa', label: 'South Africa' },
-  { value: 'Nigeria', label: 'Nigeria' },
-  { value: 'Kenya', label: 'Kenya' },
-  { value: 'South Africa', label: 'South Africa' },
 ].sort((a, b) => {
   // Sort alphabetically, but keep "All Countries" first
   if (a.value === '') return -1;

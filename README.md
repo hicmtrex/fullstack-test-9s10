@@ -61,12 +61,6 @@ npm run dev
 
 **Note:** Migrations and seeds run automatically when the backend starts. You don't need to run them manually unless you're troubleshooting.
 
-5. Start the backend:
-
-```bash
-npm run dev
-```
-
 API base URL (from the frontend): `http://localhost:3000/api` (proxied by Vite to `http://localhost:3001`).
 
 ### Test Credentials
@@ -101,7 +95,7 @@ Both frontend and backend builds pass with `npm run build` in each folder.
 
 ### Hotel Search & Reservation Flow
 
-- Search hotels by **country** and **city** in `MoteurReservation`.
+- Search hotels by **country** (dropdown select) and **city** in `MoteurReservation`.
 - Configure **rooms** (adults, children, children ages).
 - Create reservations with **validated dates** (no past check‑in, checkout after check‑in).
 - **Automatic bill (facture) generation** on successful reservation creation.
