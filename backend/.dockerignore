@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist
+build
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Scripts (not needed in container)
+scripts
+
+# Development configs
+nodemon.json
+tsconfig.json
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+
+# Misc
+*.log
+.cache
+
